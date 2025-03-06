@@ -4,10 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="0c8d5e85-f4f4-4aa9-98d9-6c95496f4505" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/blackbutler.py" beforeDir="false" afterPath="$PROJECT_DIR$/blackbutler.py" afterDir="false" />
-    </list>
+    <list default="true" id="0c8d5e85-f4f4-4aa9-98d9-6c95496f4505" name="Changes" comment="" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -94,7 +91,7 @@
       <workItem from="1740875992148" duration="8937000" />
       <workItem from="1741071257273" duration="262000" />
       <workItem from="1741072046023" duration="852000" />
-      <workItem from="1741209508882" duration="4717000" />
+      <workItem from="1741209508882" duration="4969000" />
     </task>
     <servers />
   </component>
