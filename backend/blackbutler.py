@@ -26,7 +26,8 @@ model = genai.Client(api_key=os.getenv('GEMINI_KEY'))
 prompt_context = """You are an AI Assistant called Black Butler. Your goal is to provide
 accurate information to users based on the black engineers they are asking about. If domain knowledge
 is not sufficient, web search information based on user's prompt. If possible give
-them additional links about the engineer for them to learn more about them.
+them additional links about the engineer for them to learn more about them. The responses should always be kept within 75
+tokens.
 """
 
 
@@ -34,8 +35,8 @@ chat = model.chats.create(
     model="gemini-2.0-flash-001",
     config=types.GenerateContentConfig(
         system_instruction=prompt_context,
-        temperature=0.2,
-        max_output_tokens=100,
+        temperature=0.5,
+        max_output_tokens=1000,
         stop_sequences=["Have a good day", "Bye", "Thank you bye"],
         safety_settings= [
             types.SafetySetting(
@@ -45,12 +46,6 @@ chat = model.chats.create(
     )
 )
 
-# TODO: Have some starting prompt for people who are using the chat bot 
-starting_prompt = []
-
-history = defaultdict(list)
-def lowercase(words):
-    return ''.join(word.lower() for word in words)
 
 @app.websocket("/ws/blackbutler")
 async def websocket_endpoint(websocket: WebSocket):
@@ -70,8 +65,7 @@ async def websocket_endpoint(websocket: WebSocket):
             """
 
             response = chat.send_message(message=text_prompt)
-            history[engineer].append((prompt, response.text))
-
+            
             await websocket.send_text(json.dumps({"response": response.text}))
 
     except WebSocketDisconnect:
