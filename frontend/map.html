@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset='utf-8' />
+  <title>Interactive Map of Black Engineers</title>
+  <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+  <script src='https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js'></script>
+  <link href='https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css' rel='stylesheet' />
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: "Roboto", sans-serif;
+      background-color: #1d1d1e;
+    }
+    #map {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 100%;
+    }
+    .mapboxgl-popup {
+      max-width: 200px;
+      font-size: 0.8em;
+    }
+    .mapboxgl-popup-content {
+      background-color: rgba(29, 29, 30, 0.95);
+      padding: 10px;
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      border-radius: 8px;
+    }
+    .mapboxgl-popup-content h3 {
+      margin: 0 0 6px 0;
+      font-size: 14px;
+      color: #b38c52;
+    }
+    .mapboxgl-popup-content p {
+      margin: 4px 0;
+      color: #ddd;
+      font-size: 12px;
+    }
+    .mapboxgl-popup-content a {
+      color: #b38c52;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 12px;
+    }
+    .mapboxgl-popup-content a:hover {
+      text-decoration: underline;
+    }
+    .custom-marker {
+      width: 10px;
+      height: 10px;
+      background-color: #b38c52;
+      border: 2px solid white;
+      border-radius: 50%;
+      box-shadow: 0 0 5px rgba(0,0,0,0.5);
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+<div id='map'></div>
+
+<div id="tooltip" style="
+position: absolute;
+background-color: #222;
+color: #fff;
+padding: 4px 8px;
+font-size: 11px;
+border-radius: 4px;
+pointer-events: none;
+white-space: nowrap;
+display: none;
+z-index: 999;
+"></div>
+
+<script>
+mapboxgl.accessToken = 'pk.eyJ1IjoieWlua2EzIiwiYSI6ImNtOTh6ZGpzNjAxZWMya3BubHUzdG9pcjUifQ.XITcQBe-ZQtLVkmVvL9B8A';
+
+const urlParams = new URLSearchParams(window.location.search);
+const focusEngineerId = urlParams.get('engineer');
+
+
+const engineers = [
+{
+    id: "marian-croak",
+    name: "Marian Croak",
+    latitude: 40.7128,
+    longitude: -74.0060,
+    locationName: "New York City, USA",
+    shortBio: "VoIP inventor with 200+ patents.",
+    learnMoreUrl: "https://en.wikipedia.org/wiki/Marian_Croak"
+  },
+  {
+    id: "mark-dean",
+    name: "Mark Dean",
+    latitude: 36.1187,
+    longitude: -83.4896,
+    locationName: "Jefferson City, TN, USA",
+    shortBio: "IBM PC co-inventor, gigahertz chip leader.",
+    learnMoreUrl: "https://en.wikipedia.org/wiki/Mark_Dean_(computer_scientist)"
+  },
+  {
+    id: "james-e-west",
+    name: "James E. West",
+    latitude: 37.2284,
+    longitude: -78.4494,
+    locationName: "Prince Edward County, VA, USA",
+    shortBio: "Electret microphone co-inventor.",
+    learnMoreUrl: "https://en.wikipedia.org/wiki/James_West_(inventor)"
+  },
+  {
+    id: "alexander-miles",
+    name: "Alexander Miles",
+    latitude: 46.7867,
+    longitude: -92.1005,
+    locationName: "Duluth, MN, USA",
+    shortBio: "Improved elevator door safety.",
+    learnMoreUrl: "https://en.wikipedia.org/wiki/Alexander_Miles"
+  },
+  {
+    id: "marie-van-brittan-brown",
+    name: "Marie Van Brittan Brown",
+    latitude: 40.7282,
+    longitude: -73.7949,
+    locationName: "Queens, NYC, USA",
+    shortBio: "Invented first home security system.",
+    learnMoreUrl: "https://en.wikipedia.org/wiki/Marie_Van_Brittan_Brown"
+  },
+  {
+    id: "garrett-morgan",
+    name: "Garrett Morgan",
+    latitude: 41.4993,
+    longitude: -81.6944,
+    locationName: "Cleveland, OH, USA",
+    shortBio: "Traffic signal and gas mask inventor.",
+    learnMoreUrl: "https://en.wikipedia.org/wiki/Garrett_Morgan"
+  },
+  {
+    id: "gerald-lawson",
+    name: "Gerald Lawson",
+    latitude: 40.6782,
+    longitude: -73.9442,
+    locationName: "Brooklyn, NY, USA",
+    shortBio: "Pioneered the video game cartridge system.",
+    learnMoreUrl: "https://en.wikipedia.org/wiki/Gerald_Lawson_(engineer)"
+  },
+  {
+    id: "valarie-thomas",
+    name: "Valarie Thomas",
+    latitude: 39.2904,
+    longitude: -76.6122,
+    locationName: "Baltimore, MD, USA",
+    shortBio: "Invented Illusion Transmitter for 3D imaging.",
+    learnMoreUrl: "https://en.wikipedia.org/wiki/Valerie_Thomas"
+  },
+  {
+    id: "lonnie-johnson",
+    name: "Lonnie Johnson",
+    latitude: 30.6954,
+    longitude: -88.0399,
+    locationName: "Mobile, AL, USA",
+    shortBio: "Invented Super Soaker and thermoelectric devices.",
+    learnMoreUrl: "https://en.wikipedia.org/wiki/Lonnie_Johnson_(inventor)"
+  },
+  {
+    id: "richard-spikes",
+    name: "Richard Spikes",
+    latitude: 37.7749,
+    longitude: -122.4194,
+    locationName: "San Francisco, CA, USA",
+    shortBio: "Invented early gear shift and improved brakes.",
+    learnMoreUrl: "https://en.wikipedia.org/wiki/Richard_B._Spikes"
+  },
+  {
+    id: "patricia-bath",
+    name: "Patricia Bath",
+    latitude: 40.8116,
+    longitude: -73.9465,
+    locationName: "Harlem, NY, USA",
+    shortBio: "Invented Laserphaco Probe for cataract surgery.",
+    learnMoreUrl: "https://en.wikipedia.org/wiki/Patricia_Bath"
+  },
+  {
+    id: "dr-katherine-johnson",
+    name: "Dr. Katherine Johnson",
+    latitude: 37.7935,
+    longitude: -80.3012,
+    locationName: "White Sulphur Springs, WV, USA",
+    shortBio: "NASA mathematician for spaceflight trajectories.",
+    learnMoreUrl: "https://en.wikipedia.org/wiki/Katherine_Johnson"
+  },
+  {
+    id: "dr-shirley-ann-jackson",
+    name: "Dr. Shirley Ann Jackson",
+    latitude: 38.9072,
+    longitude: -77.0369,
+    locationName: "Washington, D.C., USA",
+    shortBio: "Telecom physicist; caller ID and fiber optics.",
+    learnMoreUrl: "https://en.wikipedia.org/wiki/Shirley_Ann_Jackson"
+  },
+  {
+    id: "dr-gladys-west",
+    name: "Dr. Gladys West",
+    latitude: 37.0765,
+    longitude: -77.6022,
+    locationName: "Dinwiddie County, VA, USA",
+    shortBio: "Mathematician behind GPS satellite modeling.",
+    learnMoreUrl: "https://en.wikipedia.org/wiki/Gladys_West"
+  },
+  {
+    id: "frederick-mckinley-jones",
+    name: "Frederick McKinley Jones",
+    latitude: 39.1031,
+    longitude: -84.5120,
+    locationName: "Cincinnati, OH, USA",
+    shortBio: "Invented portable refrigeration and X-ray machine.",
+    learnMoreUrl: "https://en.wikipedia.org/wiki/Frederick_McKinley_Jones"
+  }
+];
+
+const map = new mapboxgl.Map({
+  container: 'map',
+  style: 'mapbox://styles/mapbox/satellite-streets-v12',
+  center: [-95, 37],
+  zoom: 3.5,
+  pitch: 50,
+  bearing: -10,
+  maxBounds: [[-130, 20], [-60, 50]]
+});
+
+map.addControl(new mapboxgl.NavigationControl());
+map.addControl(new mapboxgl.FullscreenControl(), 'top-right');
+map.addControl(new mapboxgl.ScaleControl(), 'bottom-left');
+map.addControl(new mapboxgl.GeolocateControl({
+  positionOptions: { enableHighAccuracy: true },
+  trackUserLocation: true,
+  showUserHeading: true
+}), 'top-right');
+
+map.on('style.load', () => {
+  try {
+    map.addSource('mapbox-dem', {
+      type: 'raster-dem',
+      url: 'mapbox://mapbox.mapbox-terrain-dem-v1',
+      tileSize: 512,
+      maxzoom: 14
+    });
+
+    map.setTerrain({ source: 'mapbox-dem', exaggeration: 1.5 });
+
+    map.setFog({
+      range: [-0.5, 8],
+      color: '#ffffff',
+      'horizon-blend': 0.05
+    });
+
+    map.setSky({
+      type: 'atmosphere',
+      atmosphere: {
+        sun: [0.0, 0.0],
+        sunIntensity: 15
+      }
+    });
+  } catch (e) {
+    console.warn("3D terrain/sky setup failed:", e);
+  }
+
+  addEngineerMarkers();
+});
+
+
+
+function addEngineerMarkers() {
+  engineers.forEach(engineer => {
+    const popupContent = `
+      <div>
+        <h3>${engineer.name}</h3>
+        <p><strong>Location:</strong> ${engineer.locationName}</p>
+        <p>${engineer.shortBio}</p>
+        <a href="${engineer.learnMoreUrl}" target="_blank">Learn More</a>
+      </div>
+    `;
+
+    const popup = new mapboxgl.Popup({ offset: 25 })
+      .setHTML(popupContent);
+
+    const el = document.createElement('div');
+    el.className = 'custom-marker';
+    el.dataset.tooltip = engineer.name;
+
+    const marker = new mapboxgl.Marker(el)
+      .setLngLat([engineer.longitude, engineer.latitude])
+      .setPopup(popup)
+      .addTo(map);
+
+    // Hover tooltip logic
+    el.addEventListener('mouseenter', (e) => {
+      const tooltip = document.getElementById('tooltip');
+      tooltip.innerText = el.dataset.tooltip;
+      tooltip.style.display = 'block';
+    });
+
+    el.addEventListener('mouseleave', () => {
+      document.getElementById('tooltip').style.display = 'none';
+    });
+
+    el.addEventListener('mousemove', (e) => {
+      const tooltip = document.getElementById('tooltip');
+      tooltip.style.left = e.pageX + 10 + 'px';
+      tooltip.style.top = e.pageY + 10 + 'px';
+    });
+
+
+    marker.getElement().addEventListener('click', () => {
+      map.flyTo({
+        center: [engineer.longitude, engineer.latitude],
+        zoom: 5,
+        pitch: 60,
+        bearing: 20,
+        speed: 1.2,
+        curve: 1.42,
+        essential: true
+      });
+    });
+
+    if (engineer.id === focusEngineerId) {
+      map.flyTo({
+        center: [engineer.longitude, engineer.latitude],
+        zoom: 5,
+        pitch: 60,
+        bearing: 20,
+        speed: 1.2,
+        curve: 1.42,
+        essential: true
+      });
+      popup.addTo(map);
+    }
+  });
+}
+
+map.on('error', (e) => {
+  console.error('Mapbox error:', e.error.message);
+});
+</script>
+
+</body>
+</html>
