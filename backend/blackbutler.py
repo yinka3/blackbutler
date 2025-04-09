@@ -46,6 +46,11 @@ chat = model.start_chat(history=[])
 # Add system instruction as the first message
 chat.send_message(prompt_context)
 
+
+@app.get("/")
+def read_root():
+    return {"status": "ok", "message": "Black Butler API is running"}
+
 @app.websocket("/ws/blackbutler")
 async def websocket_endpoint(websocket: WebSocket):
     await websocket.accept()
