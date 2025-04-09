@@ -1,15 +1,15 @@
-from collections import defaultdict
 import json
 import os
-from typing import Dict, Text
 from dotenv import load_dotenv
 import uvicorn as uvicorn
-from google import genai
-from google.genai import types
-from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
+import google.generativeai as genai
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 
 load_dotenv()
+
+# Configure the API key
+genai.configure(api_key=os.getenv('GEMINI_KEY'))
 
 app = FastAPI()
 
@@ -21,35 +21,33 @@ app.add_middleware(
     allow_headers=["*"],  
 )
 
-model = genai.Client(api_key=os.getenv('GEMINI_KEY'))
-
 prompt_context = """You are an AI Assistant called Black Butler. Your goal is to provide
 accurate information to users based on the black engineers they are asking about. If domain knowledge
 is not sufficient, web search information based on user's prompt. If possible give
-them additional links about the engineer for them to learn more about them. The responses should always be kept within 75
+them additional links about the engineer for them to learn more about them. The responses should always try to be kept within 150
 tokens.
 """
 
-
-chat = model.chats.create(
-    model="gemini-2.0-flash-001",
-    config=types.GenerateContentConfig(
-        system_instruction=prompt_context,
-        temperature=0.5,
-        max_output_tokens=1000,
-        stop_sequences=["Have a good day", "Bye", "Thank you bye"],
-        safety_settings= [
-            types.SafetySetting(
-                category='HARM_CATEGORY_HATE_SPEECH',
-                threshold='BLOCK_MEDIUM_AND_ABOVE'),
-        ]
-    )
+# Create a model with the system instruction
+model = genai.GenerativeModel(
+    model_name="gemini-2.0-flash-001",
+    generation_config={
+        "temperature": 0.5,
+        "max_output_tokens": 1000,
+        "stop_sequences": ["Have a good day", "Bye", "Thank you bye"]
+    },
+    safety_settings={
+        "HARM_CATEGORY_HATE_SPEECH": "BLOCK_MEDIUM_AND_ABOVE"
+    }
 )
 
+# Create a chat session with the system instruction
+chat = model.start_chat(history=[])
+# Add system instruction as the first message
+chat.send_message(prompt_context)
 
 @app.websocket("/ws/blackbutler")
 async def websocket_endpoint(websocket: WebSocket):
-
     await websocket.accept()
 
     try:
@@ -64,7 +62,7 @@ async def websocket_endpoint(websocket: WebSocket):
             Provide a response as Black Butler.
             """
 
-            response = chat.send_message(message=text_prompt)
+            response = chat.send_message(text_prompt)
             
             await websocket.send_text(json.dumps({"response": response.text}))
 
